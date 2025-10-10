@@ -3,3 +3,8 @@ uvicorn==0.24.0
 pydantic==2.5.0
 numpy==1.24.3
 scikit-learn==1.5.2
+supabase==2.0.3
+requests==2.31.0
+pandas==2.0.3
+scipy==1.11.4
+python-schedule==1.2.0
