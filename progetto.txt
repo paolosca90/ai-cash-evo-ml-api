@@ -1,0 +1,15 @@
+$env:ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+$env:ANTHROPIC_AUTH_TOKEN="f57e63689bd14d5ab642ce7f9298fdb1.AFAvkqiK2A88zZV7"
+claude --model glm-4.6
+
+
+> niente non va . ti spiego la logica: il sistema analizza il mercato in maniera complessa usando @"AI CASH REVOLUTION
+  VERCEL +SUPABASE\supabase\functions\auto-signal-generator\" e genera buy o sell con affidabilità percentuale. il
+  cliente nella pagina trading chart preme preme su avvia analisi ai e il sistema genera il segnale. poi inserisce
+  importo da rischiare e in base a take profit e stop loss calcolati dal sistema imposta il lottaggio ed esegue il
+  trade quando premiamo su esegui trade mt5. il ponte tra la web app e metatrader 5 e @"AI CASH REVOLUTION VERCEL
+  +SUPABASE\mt5-expert\AI_Cash_Revolution_EA.mq5" .    i pesi da attribuire ai vari indicatori ovvero adx, media ecc
+  ecc inizialmente sono fissi ma poi variearanno in base al ML. IL mchine learning funzionerà così: il sistema
+  generera segnali autonomamente ogni 5 minuti r li inserirà sul conto oanda collegato tramite api e li monitorerà
+  tick by tick usando phyton e railway. ogni settimana questi dati aggiorneranno i pesi dei vari indicatori che
+  generano i segnali

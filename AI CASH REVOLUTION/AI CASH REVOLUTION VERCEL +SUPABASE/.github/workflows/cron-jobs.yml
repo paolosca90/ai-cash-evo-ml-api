@@ -1,0 +1,60 @@
+name: Trading System Cron Jobs
+
+on:
+  schedule:
+    # Price monitoring every minute
+    - cron: '*/1 * * * *'
+    # ML auto-retrain every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  price-tick-monitor:
+    runs-on: ubuntu-latest
+    # Run only on minute schedule
+    if: github.event.schedule == '*/1 * * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Call price-tick-cron function
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            https://rvopmdflnecyrwrzhyfy.supabase.co/functions/v1/price-tick-cron \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ $http_code -ne 200 ]; then
+            echo "❌ Failed to execute price-tick-cron"
+            exit 1
+          fi
+          
+          echo "✅ Price tick monitor executed successfully"
+
+  ml-auto-retrain:
+    runs-on: ubuntu-latest
+    # Run only on 6-hour schedule
+    if: github.event.schedule == '0 */6 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Call ml-auto-retrain function
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            https://rvopmdflnecyrwrzhyfy.supabase.co/functions/v1/ml-auto-retrain \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ $http_code -ne 200 ]; then
+            echo "❌ Failed to execute ml-auto-retrain"
+            exit 1
+          fi
+          
+          echo "✅ ML auto-retrain executed successfully"

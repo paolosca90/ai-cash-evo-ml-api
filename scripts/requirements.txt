@@ -1,0 +1,29 @@
+# Python Dependencies for ML Training Pipeline
+# ============================================
+
+# Core
+python-dotenv==1.0.0
+
+# Supabase
+supabase==2.0.3
+
+# HTTP Requests
+requests==2.31.0
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.2
+
+# ML/AI
+tensorflow==2.15.0
+scikit-learn==1.3.2
+
+# Visualization (optional, for analysis)
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Progress bars
+tqdm==4.66.1
+
+# Date/Time utilities
+python-dateutil==2.8.2

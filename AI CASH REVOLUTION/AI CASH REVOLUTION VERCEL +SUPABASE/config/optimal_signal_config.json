@@ -1,0 +1,102 @@
+{
+  "timestamp": "2025-10-10T12:48:36.769639",
+  "version": "2.0",
+  "optimal_threshold": 90.0,
+  "performance": {
+    "baseline_winrate": 99.3,
+    "baseline_avg_pips": 10.1706,
+    "optimized_winrate": 100.0,
+    "optimized_avg_pips": 39.4,
+    "improvement_winrate": 0.7000000000000028,
+    "improvement_pips": 29.2294,
+    "qualified_signals": 34,
+    "total_signals": 1000
+  },
+  "by_direction": {
+    "BUY": {
+      "count": 32,
+      "winrate": 100.0,
+      "avg_pips": 39.59375
+    },
+    "SELL": {
+      "count": 2,
+      "winrate": 100.0,
+      "avg_pips": 36.3
+    }
+  },
+  "all_thresholds": [
+    {
+      "threshold": 50.0,
+      "signals": 730,
+      "winrate": 100.0,
+      "avg_pips": 13.333424657534247,
+      "total_pips": 9733.4,
+      "score": 65.3333698630137
+    },
+    {
+      "threshold": 55.0,
+      "signals": 588,
+      "winrate": 100.0,
+      "avg_pips": 15.365986394557824,
+      "total_pips": 9035.2,
+      "score": 66.14639455782313
+    },
+    {
+      "threshold": 60.0,
+      "signals": 457,
+      "winrate": 100.0,
+      "avg_pips": 17.648577680525165,
+      "total_pips": 8065.4,
+      "score": 67.05943107221006
+    },
+    {
+      "threshold": 65.0,
+      "signals": 355,
+      "winrate": 100.0,
+      "avg_pips": 19.93887323943662,
+      "total_pips": 7078.3,
+      "score": 67.97554929577464
+    },
+    {
+      "threshold": 70.0,
+      "signals": 279,
+      "winrate": 100.0,
+      "avg_pips": 22.12114695340502,
+      "total_pips": 6171.8,
+      "score": 68.84845878136201
+    },
+    {
+      "threshold": 75.0,
+      "signals": 236,
+      "winrate": 100.0,
+      "avg_pips": 23.619915254237288,
+      "total_pips": 5574.3,
+      "score": 69.44796610169492
+    },
+    {
+      "threshold": 80.0,
+      "signals": 179,
+      "winrate": 100.0,
+      "avg_pips": 25.967597765363127,
+      "total_pips": 4648.2,
+      "score": 70.38703910614525
+    },
+    {
+      "threshold": 85.0,
+      "signals": 69,
+      "winrate": 100.0,
+      "avg_pips": 33.86521739130435,
+      "total_pips": 2336.7,
+      "score": 73.54608695652175
+    },
+    {
+      "threshold": 90.0,
+      "signals": 34,
+      "winrate": 100.0,
+      "avg_pips": 39.4,
+      "total_pips": 1339.6,
+      "score": 75.76
+    }
+  ],
+  "recommendation": "Use signals with confidence >= 90 for best performance"
+}

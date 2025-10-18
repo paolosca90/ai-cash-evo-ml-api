@@ -1,0 +1,145 @@
+# Optimized .dockerignore for layer caching and security
+
+# VPS Installation files - not needed for container deployment
+VPS INSTALLAZIONE/
+VPS*
+
+# Python cache and build files (exclude for layer caching)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+
+# Development and testing files
+test_*
+*_test.py
+tests/
+conftest.py
+tox.ini
+pytest.ini
+.coveragerc
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Logs and temporary files
+*.log
+logs/
+*.tmp
+*.temp
+temp/
+*.cache
+.cache/
+
+# Environment and configuration files (use Docker secrets/env)
+.env*
+!.env.example
+config/secrets/
+config/local_*
+
+# Documentation (exclude to reduce image size)
+*.md
+README*
+CHANGELOG*
+LICENSE*
+docs/
+*.pdf
+
+# Node modules and frontend build artifacts
+node_modules/
+.npm/
+.yarn/
+dist/
+build/
+*.bundle.js
+
+# Python package artifacts
+*.egg-info/
+.eggs/
+setup.py
+setup.cfg
+pyproject.toml
+
+# Database files (use external volumes)
+*.db
+*.sqlite3
+*.sqlite
+data/
+database/
+
+# Large data and machine learning models
+*.csv
+*.xlsx
+*.json
+data/
+models/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# Runtime generated files
+uploads/
+media/
+static/uploads/
+static/media/
+
+# Development tools
+.pre-commit-config.yaml
+.flake8
+.bandit
+.pylintrc
+black.toml
+isort.cfg
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Docker specific
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Backup and archive files
+*.bak
+*.backup
+*.tar.gz
+*.zip
+*.rar
+
+# Runtime application data (use volumes)
+logs/
+data/
+uploads/
+sessions/
