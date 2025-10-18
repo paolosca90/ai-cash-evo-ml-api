@@ -1,6 +1,10 @@
-# AI Cash Evolution - ML Trading Service for Hugging Face Spaces
-# Complete web interface with Gradio
-
+#!/usr/bin/env python3
+"""
+AI Cash Evolution ML API - Hugging Face Spaces Deployment
+Complete ML trading system with Gradio interface and REST API
+"""
+import os
+import sys
 import gradio as gr
 import pandas as pd
 import numpy as np
@@ -383,7 +387,7 @@ def create_interface():
 
                 This system is also available as a REST API for integration with your trading dashboard.
 
-                **Base URL**: `https://your-space.hf.space`
+                **Base URL**: `https://ai-cash-evolution-ml.hf.space`
 
                 #### Endpoints:
 
@@ -470,7 +474,7 @@ def create_interface():
                 This system integrates seamlessly with your AI Cash Evolution dashboard.
                 Update your environment variables:
                 ```bash
-                VITE_ML_API_URL=https://your-space.hf.space
+                VITE_ML_API_URL=https://ai-cash-evolution-ml.hf.space
                 ```
 
                 ---
