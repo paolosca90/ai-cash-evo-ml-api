@@ -62,7 +62,8 @@
       "Bash(awk '{print $NF}')",
       "Bash(cp -r \"AI CASH REVOLUTION VERCEL +SUPABASE/mt5-expert\" tools/)",
       "Bash(cp -r \"AI CASH REVOLUTION VERCEL +SUPABASE/ml_models\" railway-ml-service/)",
-      "Bash(cp \"AI CASH REVOLUTION VERCEL +SUPABASE/.env\" \"AI CASH REVOLUTION VERCEL +SUPABASE/.env.production\" .)"
+      "Bash(cp \"AI CASH REVOLUTION VERCEL +SUPABASE/.env\" \"AI CASH REVOLUTION VERCEL +SUPABASE/.env.production\" .)",
+      "Bash(git push origin main --force)"
     ],
     "deny": [],
     "ask": []

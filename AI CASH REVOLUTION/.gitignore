@@ -95,3 +95,5 @@ railway-ml-service/
 # Old directory structure (if still exists)
 AI CASH REVOLUTION RAILWAY/
 AI CASH REVOLUTION VERCEL +SUPABASE/
+
+.vercel
