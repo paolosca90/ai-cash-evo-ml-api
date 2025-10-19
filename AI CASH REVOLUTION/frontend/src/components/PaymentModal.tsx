@@ -21,6 +21,7 @@ import {
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 // Funzione per generare QR code da una stringa
 const generateQRCode = async (text: string): Promise<string> => {
