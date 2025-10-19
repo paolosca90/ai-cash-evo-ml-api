@@ -4,26 +4,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI Cash Revolution V3 is an advanced adaptive trading system that generates real-time trading signals using AI, machine learning, and technical analysis. The system integrates with MetaTrader 5 for automated trade execution and features a comprehensive web dashboard for signal management and analysis.
+AI Cash Revolution V3 is an advanced adaptive trading system that generates real-time trading signals using AI, machine learning, and technical analysis. The system integrates with MetaTrader 5 for automated trade execution, OANDA for real-time data and paper trading, and features a comprehensive web dashboard for signal management and analysis.
+
+**Key Components**:
+- **Main Application** (Vercel): React + TypeScript frontend with Supabase backend
+- **ML Analytics Platform** (Hugging Face Spaces): Professional monitoring and analytics with OANDA integration
+- **Auto-Trader V4**: Ensemble learning system with adaptive weight optimization
+- **MT5 Integration**: Expert Advisor for automated trade execution
 
 ## Development Commands
 
 ### Frontend Development
 ```bash
-# Development server (runs on port 8080)
+# Development server (runs on port 5173 from frontend/ directory)
+cd frontend
 npm run dev
 
 # Production build
+cd frontend
 npm run build
 
 # Preview production build
+cd frontend
 npm run preview
 
 # Code linting
+cd frontend
 npm run lint
 
 # Development build with debugging
+cd frontend
 npm run build:dev
+```
+
+### Hugging Face ML Analytics
+```bash
+# Local development
+cd ../ai-cash-evolution-ml
+python app.py
+
+# Test analytics endpoints
+curl https://semiautotrade-ai-cash-evolution-ml.hf.space/health
+curl https://semiautotrade-ai-cash-evolution-ml.hf.space/live-trades
+curl https://semiautotrade-ai-cash-evolution-ml.hf.space/analytics
+curl https://semiautotrade-ai-cash-evolution-ml.hf.space/ensemble-weights
 ```
 
 ### Database & Supabase Operations
@@ -88,11 +112,35 @@ curl -X POST \
 - **Recharts** for data visualization
 
 ### Backend Architecture
-- **Supabase Edge Functions** (Deno runtime) - 51 total functions
+- **Supabase Edge Functions** (Deno runtime) - 46 active functions
 - **PostgreSQL** database with Row Level Security (RLS)
 - **Real-time WebSocket connections** for live data updates
 - **Cron Jobs** for automated maintenance and optimization
-- **OANDA API** integration for real-time market data
+- **OANDA API** integration for real-time market data and paper trading
+- **Hugging Face Spaces** - ML Analytics Platform (Version 3.0.0)
+
+### ML Analytics Platform (Hugging Face Spaces)
+**URL**: https://semiautotrade-ai-cash-evolution-ml.hf.space
+
+**Version**: 3.0.0 - Analytics Edition
+
+**Primary Purpose**: Professional monitoring and analysis of OANDA trading performance
+
+**Key Features**:
+- 📊 **Live Trading Monitor** - Real-time OANDA trade tracking with P&L
+- 📈 **Performance Analytics** - Win rates, Sharpe ratios, comprehensive metrics
+- ⚖️ **Ensemble Weights Analysis** - ML vs Classic performance comparison
+- 🎯 **Signal Generation** - OANDA real-time data integration with fallback to Yahoo Finance
+- 💰 **Risk Management Analytics** - SL/TP effectiveness tracking
+- 🔄 **Auto-Save Signals** - Every signal saved to Supabase for tracking
+
+**Data Sources**:
+- **OANDA API** via Supabase Edge Function (`oanda-market-data`) - Priority for forex/metals
+- **Yahoo Finance** - Fallback for all symbols
+- **Supabase Database** - Real-time trade tracking from Auto-Trader V4
+- **signal_performance** table - Complete trade history
+- **ensemble_weights** table - Adaptive learning weights
+- **signal_performance_analytics** view - Aggregated metrics
 
 ### Core Trading System Components
 
@@ -188,39 +236,67 @@ ea_heartbeats {
 }
 ```
 
-### Edge Functions Architecture
+### Edge Functions Architecture (46 Functions)
 
-#### Core Trading Functions (15)
+#### Core Trading Functions
 - `generate-ai-signals` - Main signal generation with ML
 - `mt5-trade-signals` - Signal delivery and execution
+- `mt5-trade-signals-v2` - Enhanced MT5 integration
 - `trade-update` - Trade status updates
 - `heartbeat` - EA monitoring
-- `auto-oanda-trader` - OANDA API integration
+- `auto-oanda-trader` - OANDA API integration and paper trading
+- `execute-oanda-trade` - OANDA trade execution
+- `execute-trade` - Generic trade execution
+- `trade-signals` - Legacy signal delivery
 
-#### ML Pipeline Functions (12)
-- `ml-advanced-neural` - Neural network predictions
-- `ml-auto-retrain` - Model retraining automation
-- `ml-performance-tracker` - Performance monitoring
-- `ml-signal-optimizer` - Signal optimization
-- `ml-weight-optimizer` - Model weight optimization
+#### OANDA Integration
+- `oanda-market-data` - **Real-time price feeds from OANDA API** (used by Hugging Face ML)
+- `auto-result-updater` - Automatic trade result updates every minute
+- `execute-oanda-trade` - Direct OANDA trade execution
 
-#### Authentication & User Management (8)
+#### ML Pipeline Functions
+- `ml-confirmation` - ML signal confirmation
+- `ml-random-signals` - Random signal generation for testing
+- `ml-training-scheduler` - Automated model retraining
+
+#### Analytics & Monitoring
+- `auto-result-updater` - Updates trade results every minute
+- `debug-mt5-signals` - MT5 signal debugging
+- `get-real-indicators` - Real technical indicators
+
+#### Authentication & User Management
 - `auth-email-handler` - Email authentication
+- `auth-webhook` - Authentication webhooks
 - `password-reset-email` - Password reset
+- `send-auth-email` - Send authentication emails
+- `send-reset-email` - Send password reset emails
 - `welcome-email` - User onboarding
 - `user-api-keys` - API key management
+- `check-subscription` - Subscription validation
 
-#### Data & Integration Functions (20)
-- `oanda-market-data` - Real-time price feeds
+#### Payment & Subscription
+- `create-checkout` - Stripe checkout creation
+- `create-stripe-setup` - Stripe setup intent
+- `create-payment-qr` - Crypto payment QR codes
+- `verify-crypto-payment` - Crypto payment verification
+- `customer-portal` - Stripe customer portal
+- `crypto-renewal-reminder` - Payment renewal reminders
+- `expire-trials` - Trial expiration management
+
+#### Data & Integration Functions
 - `fetch-economic-calendar` - Economic events
+- `update-economic-calendar` - Calendar updates
 - `fetch-financial-news` - News sentiment
-- `technical-indicators` - Technical analysis
+- `fetch-investing-news-it` - Italian news feed
 - `crypto-price-feed` - Cryptocurrency data
+- `historical-data-cache` - Historical data caching
+- `llm-sentiment` - LLM-based sentiment analysis
 
-#### Utility & Maintenance Functions (10)
+#### Utility & Maintenance Functions
 - `cleanup-old-signals` - Data cleanup
-- `expire-trials` - Subscription management
-- `price-tick-cron` - Price monitoring
+- `cleanup-old-signals-auto` - Automated cleanup
+- `cleanup-null-entries` - Remove null data
+- `notify-signal` - Signal notifications
 - `realtime-trade-webhook` - Webhook handling
 
 ## Signal Flow Architecture
@@ -294,6 +370,19 @@ supabase secrets set OANDA_ACCOUNT_ID=your-account
 supabase secrets set STRIPE_SECRET_KEY=your-stripe-secret
 ```
 
+### Hugging Face ML Analytics Environment
+```bash
+# ML Analytics Platform uses direct Supabase connection
+SUPABASE_URL=https://rvopmdflnecyrwrzhyfy.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# These are embedded in app.py for the analytics platform
+# The platform reads from:
+# - signal_performance table (trade tracking)
+# - ensemble_weights table (ML vs Classic weights)
+# - signal_performance_analytics view (aggregated metrics)
+```
+
 ## MT5 Expert Advisor Setup
 
 ### Installation & Configuration
@@ -348,6 +437,107 @@ src/pages/
 └── MLTest.tsx           # ML testing interface
 ```
 
+## Hugging Face ML Analytics API
+
+### API Endpoints
+
+The Hugging Face ML Analytics platform provides comprehensive REST API endpoints:
+
+#### Health & Status
+```bash
+GET https://semiautotrade-ai-cash-evolution-ml.hf.space/health
+# Returns: { "status": "healthy", "platform": "huggingface_spaces", "timestamp": "..." }
+```
+
+#### Live Trading Monitor
+```bash
+GET https://semiautotrade-ai-cash-evolution-ml.hf.space/live-trades
+# Returns: Latest 100 trades with OANDA execution status, P&L, win/loss tracking
+# Response includes:
+# - success: boolean
+# - data: array of trade objects
+# - count: number of trades
+# - timestamp: ISO timestamp
+```
+
+#### Performance Analytics
+```bash
+GET https://semiautotrade-ai-cash-evolution-ml.hf.space/analytics
+# Returns: Comprehensive performance metrics by symbol and signal type
+# Metrics include:
+# - Win rate %
+# - Total signals, wins, losses
+# - Average confidence
+# - Total P&L and average P&L
+# - Sharpe ratio
+# - P&L standard deviation
+```
+
+#### Ensemble Weights
+```bash
+GET https://semiautotrade-ai-cash-evolution-ml.hf.space/ensemble-weights
+# Returns: ML vs Classic performance weights per symbol
+# Data includes:
+# - classic_weight, ml_weight (0-1 range)
+# - classic_win_rate, ml_win_rate
+# - classic_sharpe, ml_sharpe
+# - sample_size (trades used for calculation)
+# - last_recalculated timestamp
+```
+
+#### Legacy Signal Generation
+```bash
+# Single symbol analysis
+GET https://semiautotrade-ai-cash-evolution-ml.hf.space/predict?symbol=EURUSD=X
+
+# Batch analysis (max 50 symbols)
+POST https://semiautotrade-ai-cash-evolution-ml.hf.space/predict/batch
+Content-Type: application/json
+{
+  "symbols": ["EURUSD=X", "GBPUSD=X", "USDJPY=X"]
+}
+```
+
+#### Available Symbols
+```bash
+GET https://semiautotrade-ai-cash-evolution-ml.hf.space/symbols
+# Returns categorized list: forex, commodities, crypto, indices
+```
+
+### OANDA Real-Time Integration
+
+The ML platform prioritizes OANDA real-time data for forex and metals:
+
+```python
+# Priority symbols for OANDA (via oanda-market-data Edge Function):
+- All forex majors: EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, NZDUSD
+- All forex minors: EURGBP, EURJPY, GBPJPY, etc.
+- Metals: XAUUSD, XAGUSD
+
+# Process:
+1. Check if symbol is forex/metal
+2. Call Supabase oanda-market-data function
+3. Get 100 M5 candles (real-time OANDA data)
+4. If OANDA fails, fallback to Yahoo Finance
+5. Generate signal with retrieved data
+6. Auto-save signal to signal_performance table
+```
+
+### Auto-Save Signal Feature
+
+Every signal generated on Hugging Face is automatically saved to Supabase:
+
+```python
+# Saved data:
+- symbol, signal_type, predicted_direction
+- confidence, entry_price, stop_loss, take_profit
+- ml_action, ml_confidence, agreement
+- indicators (RSI, MACD, BB, Stochastic)
+- source: "huggingface_spaces"
+- mode: "huggingface_oanda_integrated"
+- timestamp
+```
+
 ## Deployment Guide
 
 ### Frontend Deployment (Vercel)
@@ -355,11 +545,38 @@ src/pages/
 # Install Vercel CLI
 npm i -g vercel
 
-# Deploy to production
+# Deploy to production (from project root)
 vercel --prod
 
 # Set environment variables in Vercel dashboard
 # VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, etc.
+
+# Note: Build command configured in vercel.json:
+# "buildCommand": "cd frontend && npm run build"
+# "outputDirectory": "frontend/dist"
+```
+
+### Hugging Face ML Analytics Deployment
+```bash
+# Platform: Hugging Face Spaces (https://huggingface.co/spaces)
+# Repository: https://huggingface.co/spaces/semiautotrade/ai-cash-evolution-ml
+
+# Deployment is automatic on git push:
+cd ../ai-cash-evolution-ml
+git add .
+git commit -m "Update analytics platform"
+git push
+
+# Files required:
+# - app.py (main Gradio + Flask application)
+# - requirements.txt (Python dependencies)
+# - README.md (Hugging Face Space description)
+
+# The platform automatically:
+# 1. Detects Gradio app in app.py
+# 2. Installs requirements from requirements.txt
+# 3. Launches on port 7860
+# 4. Serves both Gradio UI and Flask API
 ```
 
 ### Supabase Functions Deployment
@@ -439,6 +656,59 @@ SELECT
 FROM collective_signals
 WHERE created_at > NOW() - INTERVAL '7 days'
 GROUP BY signal_type;
+```
+
+### ML Analytics Platform Monitoring
+```sql
+-- Check signal_performance table (used by Hugging Face ML)
+SELECT
+  symbol,
+  signal_type,
+  COUNT(*) as total_signals,
+  COUNT(CASE WHEN win = true THEN 1 END) as wins,
+  COUNT(CASE WHEN win = false THEN 1 END) as losses,
+  ROUND(COUNT(CASE WHEN win = true THEN 1 END)::numeric / COUNT(*)::numeric * 100, 2) as win_rate_percent,
+  AVG(confidence) as avg_confidence,
+  AVG(actual_result) as avg_pnl,
+  SUM(actual_result) as total_pnl
+FROM signal_performance
+WHERE created_at > NOW() - INTERVAL '7 days'
+  AND win IS NOT NULL  -- Only completed trades
+GROUP BY symbol, signal_type
+ORDER BY total_signals DESC;
+
+-- Check ensemble weights (ML vs Classic)
+SELECT
+  symbol,
+  classic_weight,
+  ml_weight,
+  classic_win_rate,
+  ml_win_rate,
+  classic_sharpe,
+  ml_sharpe,
+  sample_size,
+  last_recalculated
+FROM ensemble_weights
+ORDER BY symbol;
+
+-- Monitor OANDA trade execution
+SELECT
+  symbol,
+  predicted_direction,
+  confidence,
+  entry_price,
+  actual_result,
+  win,
+  external_trade_id,  -- OANDA trade ID
+  created_at
+FROM signal_performance
+WHERE external_trade_id IS NOT NULL  -- Only OANDA executed trades
+  AND created_at > NOW() - INTERVAL '24 hours'
+ORDER BY created_at DESC;
+
+-- Performance analytics view (aggregated)
+SELECT * FROM signal_performance_analytics
+ORDER BY total_signals DESC;
 ```
 
 ## Common Issues & Solutions
@@ -587,29 +857,90 @@ if (adx > 25 && choppiness < 50) {
 
 ## File Structure & Key Files
 
+### Project Structure
+```
+AI CASH REVOLUTION/
+├── frontend/                 # React + TypeScript application
+│   ├── src/
+│   │   ├── App.tsx          # Main app with routing
+│   │   ├── components/      # React components
+│   │   │   ├── AISignals.tsx
+│   │   │   ├── TradingDashboard.tsx
+│   │   │   └── ...
+│   │   ├── pages/           # Page components
+│   │   └── lib/             # Utilities
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.ts
+│
+├── backend/
+│   └── supabase/
+│       └── functions/       # 46 Edge Functions
+│           ├── generate-ai-signals/
+│           ├── mt5-trade-signals/
+│           ├── oanda-market-data/
+│           ├── auto-oanda-trader/
+│           └── ...
+│
+├── database/                # Database schemas and migrations
+│   ├── MANUAL_DB_SETUP.sql
+│   ├── mt5-schema.sql
+│   └── schemas/
+│
+├── huggingface-deployment/  # Local HF deployment files (legacy)
+│   ├── app.py
+│   └── requirements.txt
+│
+├── config/                  # Configuration files
+├── docs/                    # Documentation
+├── vercel.json             # Vercel deployment config
+├── CLAUDE.md               # This file
+└── README.md               # Project README
+```
+
+### External Repositories
+
+#### ML Analytics Platform
+**Location**: `C:\Users\USER\Desktop\ai-cash-evolution-ml\`
+**Deployment**: Hugging Face Spaces
+**URL**: https://huggingface.co/spaces/semiautotrade/ai-cash-evolution-ml
+
+**Key Files**:
+- `app.py` (1090 lines) - Gradio + Flask hybrid application
+  - Live Trading Monitor (line 486-552)
+  - Performance Analytics (line 611-674)
+  - Ensemble Weights (line 554-609)
+  - OANDA Integration (line 28-76, 169-192)
+  - Auto-Save to Supabase (line 194-241)
+- `requirements.txt` - Python dependencies (Gradio, Flask, yfinance, pandas, plotly)
+- `README.md` - Platform documentation
+
 ### Configuration Files
-- `vite.config.ts` - Vite build configuration
-- `tsconfig.json` - TypeScript configuration
-- `tailwind.config.ts` - TailwindCSS configuration
-- `vercel.json` - Vercel deployment configuration
-- `components.json` - shadcn/ui component configuration
+- `frontend/vite.config.ts` - Vite build configuration
+- `frontend/tsconfig.json` - TypeScript configuration
+- `frontend/tailwind.config.ts` - TailwindCSS configuration
+- `vercel.json` - Vercel deployment configuration (points to frontend/)
+- `frontend/components.json` - shadcn/ui component configuration
+- `mcp-config.json` - MCP server configuration for Supabase database
 
 ### Key Source Files
-- `src/App.tsx` - Main application component with routing
-- `src/components/AISignals.tsx` - AI signal generation and display
-- `supabase/functions/generate-ai-signals/index.ts` - Core signal generation
-- `supabase/functions/mt5-trade-signals/index.ts` - MT5 integration
-- `mt5-expert/AI_Cash_Revolution_EA_DISTRIBUTION.mq5` - MetaTrader EA
+- `frontend/src/App.tsx` - Main application component with routing
+- `frontend/src/components/AISignals.tsx` - AI signal generation and display
+- `backend/supabase/functions/generate-ai-signals/index.ts` - Core signal generation
+- `backend/supabase/functions/mt5-trade-signals/index.ts` - MT5 integration
+- `backend/supabase/functions/oanda-market-data/index.ts` - OANDA real-time data
+- `backend/supabase/functions/auto-oanda-trader/index.ts` - OANDA trade execution
 
 ### Database Files
 - `database/MANUAL_DB_SETUP.sql` - Complete database schema
 - `database/mt5-schema.sql` - MT5-specific tables
 - `database/FIXED_DB_SETUP.sql` - Fixed database setup
+- `database/schemas/` - Individual schema files
 
 ### Deployment Files
-- `deploy-functions.js` - Custom deployment script
+- `vercel.json` - Vercel configuration (frontend deployment)
+- `deploy-functions.js` - Custom Supabase deployment script
 - `deploy-function.js` - Single function deployment
-- `DEPLOYMENT_GUIDE.md` - Deployment instructions
 
 ## Important Notes
 
@@ -631,8 +962,19 @@ if (adx > 25 && choppiness < 50) {
 - **ATR-based stop losses** with minimum distances
 - **1:1 risk-reward ratios** with spread compensation
 
+### Auto-Trader V4 Integration
+- **29 Symbols**: All majors, minors, and Gold
+- **Ensemble Learning**: Dynamic weight optimization every 10 trades
+- **Weight Filtering**: Only trades with ≥70% confidence from dominant model
+- **Auto-Result-Updater**: Checks trade results every minute
+- **Ensemble Weights Table**: Tracks ML vs Classic performance per symbol
+- **Signal Performance Table**: Complete trade history with P&L tracking
+
 ---
 
-**Last Updated**: 2025-10-18
-**Version**: 3.0
+**Last Updated**: 2025-10-19
+**Version**: 3.0.0 Analytics Edition
 **Maintainer**: AI Cash Revolution Team
+**ML Platform Version**: 3.0.0 (Hugging Face Spaces)
+**Active Edge Functions**: 46
+**Hugging Face Platform**: https://semiautotrade-ai-cash-evolution-ml.hf.space
