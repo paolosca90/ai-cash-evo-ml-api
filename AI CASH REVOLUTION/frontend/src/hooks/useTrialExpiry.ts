@@ -60,8 +60,13 @@ export const useTrialExpiry = ({ user }: UseTrialExpiryProps) => {
 
     const { subscription_status, subscription_expires_at, subscription_plan } = profile;
 
-    // Don't show if user already has a paid plan
-    if (subscription_status === 'active' && subscription_plan !== 'essenziale') {
+    // NEVER show if user has Professional or Enterprise plan (regardless of status)
+    if (subscription_plan === 'professional' || subscription_plan === 'enterprise') {
+      return false;
+    }
+
+    // Don't show if user has active paid subscription
+    if (subscription_status === 'active') {
       return false;
     }
 
@@ -72,10 +77,9 @@ export const useTrialExpiry = ({ user }: UseTrialExpiryProps) => {
     const now = new Date();
     const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Show popup if:
-    // 1. Trial is expired
-    // 2. Trial expires in 3 days or less
-    // 3. Subscription is expired
+    // Show popup ONLY if:
+    // 1. subscription_status === 'trial' AND expires in 3 days or less
+    // 2. subscription_status === 'expired'
     if (subscription_status === 'trial') {
       return daysUntilExpiry <= 3 || daysUntilExpiry < 0;
     }
