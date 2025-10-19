@@ -5,20 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PaymentModal } from "@/components/PaymentModal";
 
-import { 
-  TrendingUp, 
-  Brain, 
-  Zap, 
-  Target, 
-  Shield, 
-  BarChart3, 
-  Clock, 
+import {
+  TrendingUp,
+  Brain,
+  Zap,
+  Target,
+  Shield,
+  BarChart3,
+  Clock,
   DollarSign,
   Sparkles,
   ArrowRight,
   CheckCircle,
-  Star,
-  QrCode
+  Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -458,72 +457,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* QR Payment Section */}
-      <section className="py-16 bg-gradient-to-br from-muted/30 to-primary/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
-                <QrCode className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-primary">Novità: Pagamento QR</span>
-              </div>
-              <h2 className="text-3xl font-bold">
-                Il Modo Più Veloce per Iniziare
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Scansiona il QR code e attiva il tuo abbonamento in 3 secondi. 
-                Supporta sia pagamenti con carta che criptovalute.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-primary">1</span>
-                </div>
-                <h3 className="font-semibold mb-2">Inquadra</h3>
-                <p className="text-sm text-muted-foreground">
-                  Apri la fotocamera del tuo smartphone e inquadra il QR code
-                </p>
-              </div>
-              
-              <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-primary">2</span>
-                </div>
-                <h3 className="font-semibold mb-2">Tocca</h3>
-                <p className="text-sm text-muted-foreground">
-                  Tocca la notifica che appare per aprire il pagamento
-                </p>
-              </div>
-              
-              <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
-                <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-6 h-6 text-success" />
-                </div>
-                <h3 className="font-semibold mb-2">Fatto!</h3>
-                <p className="text-sm text-muted-foreground">
-                  Il tuo abbonamento è attivo e puoi iniziare a fare trading
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-6">
-              <Link to="/qr-payment?plan=Premium&amount=29.99&annual=false">
-                <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 px-8 py-4">
-                  <QrCode className="w-5 h-5 mr-2" />
-                  Prova il Pagamento QR
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <div className="mt-3 text-sm text-muted-foreground">
-                ⚡ Attivazione istantanea • 🔒 Sicuro • 📱 Mobile-first
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary/10 via-warning/10 to-success/10">
         <div className="container mx-auto px-4 text-center">
@@ -534,17 +468,11 @@ const Landing = () => {
             Unisciti a migliaia di trader che hanno già trasformato i loro investimenti con AI CASH R-EVOLUTION
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link to="/login">
               <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-6 text-lg">
                 <Sparkles className="w-5 h-5 mr-2" />
                 Inizia la Prova Gratuita
-              </Button>
-            </Link>
-            <Link to="/qr-payment?plan=Premium&amount=29.99&annual=false">
-              <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-2 border-primary/30 hover:bg-primary/5">
-                <QrCode className="w-5 h-5 mr-2" />
-                Paga con QR Code
               </Button>
             </Link>
           </div>
