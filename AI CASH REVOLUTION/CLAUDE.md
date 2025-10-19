@@ -8,11 +8,14 @@ AI Cash Revolution V3 is an advanced adaptive trading system with subscription m
 
 **Key Features**:
 - **Signal Limits**: 1 signal/day for Essential plan, unlimited for Professional
-- **Trial Management**: 7-day trial with expiry popup system
+- **Trial Management**: 7-day trial with expiry popup system and daily notification
+- **Phone Validation**: Unique phone number required to prevent multiple trial accounts
 - **Revenue Optimization**: Multi-tier pricing with upgrade prompts
-- **Anti-Sharing System**: Prevents MT5 account and trial abuse
+- **Anti-Sharing System**: MT5 account uniqueness - one account per email only
+- **Legal Compliance**: Full CONSOB disclaimer and GDPR privacy policy
 - **Real-Time Analytics**: Hugging Face ML platform with OANDA integration
-- **MT5 Integration**: Expert Advisor with automated execution
+- **MT5 Integration**: Expert Advisor with automated execution and popup confirmation
+- **Trade Execution V2**: Simplified execution panel with confirmation popup (no risk amount input)
 
 **Architecture**:
 - **Frontend** (Vercel): React + TypeScript with Supabase backend
@@ -831,6 +834,183 @@ if (adx > 25 && choppiness < 50) {
 - Regular security audits and dependency updates
 - Monitor for unusual trading patterns or API usage
 
+## Anti-Abuse & Compliance Systems
+
+### Phone Number Validation System
+**Purpose**: Prevent users from creating multiple trial accounts
+
+**Implementation**:
+- Database: `profiles.phone_number` (VARCHAR(20) UNIQUE)
+- Validation: International format regex `^\+?[1-9]\d{1,14}$`
+- UI: Required field in registration form (`frontend/src/pages/Login.tsx`)
+- Check: Pre-registration uniqueness validation via Supabase query
+
+**Migration**: `database/migrations/ADD_PHONE_NUMBER_AND_TRIAL_SYSTEM.sql`
+
+**Functions**:
+```sql
+-- Check phone availability
+SELECT is_phone_number_available('+39 333 1234567');
+
+-- Returns: true (available) or false (already used)
+```
+
+**Benefits**:
+- ✅ Prevents trial abuse with different emails
+- ✅ No SMS verification costs (constraint-based)
+- ✅ International format support
+
+---
+
+### Trial Notification System
+**Purpose**: Notify users of remaining trial days and prompt upgrades
+
+**Components**:
+- **TrialExpiryPopup**: `frontend/src/components/TrialExpiryPopup.tsx`
+- **useTrialExpiry Hook**: `frontend/src/hooks/useTrialExpiry.ts`
+- **Database View**: `trial_users_monitor` (admin monitoring)
+
+**Behavior**:
+- Appears **3 days before** trial expiration
+- Shows progress bar with remaining days
+- Suppression: 24 hours after dismissal
+- Auto-check: Every hour
+- Professional plan recommended
+
+**Database Function**:
+```sql
+-- Get remaining trial days
+SELECT get_trial_days_remaining(auth.uid());
+
+-- Returns:
+-- -1: No trial set
+-- 0: Trial expired
+-- N: Days remaining
+```
+
+**Popup Triggers**:
+```javascript
+// Show popup if:
+1. subscription_status === 'trial' AND days_left <= 3
+2. subscription_status === 'expired'
+3. trial_ends_at < NOW()
+4. NOT already 'professional' or 'enterprise' plan
+```
+
+**Documentation**: `docs/TRIAL_EXPIRY_POPUP.md`
+
+---
+
+### MT5 Account Validation System
+**Purpose**: Prevent account sharing - one MT5 account per user email
+
+**Implementation**:
+- Database: `mt5_accounts.account_number` (UNIQUE constraint)
+- Validation: In `heartbeat` Edge Function
+- Check: On every EA heartbeat (every 30 seconds)
+
+**Logic**:
+```typescript
+// On heartbeat:
+1. Extract account_number from EA request
+2. Query mt5_accounts for existing account_number
+3. If exists:
+   - Check if user_id matches current email
+   - If different → BLOCK with 403
+4. If not exists → Allow and register
+```
+
+**Response Codes**:
+- **200 OK**: Account validated for user
+- **403 FORBIDDEN**: Account already linked to another email
+
+```json
+// Error response:
+{
+  "success": false,
+  "error": "ACCOUNT_ALREADY_LINKED",
+  "message": "MT5 account 12345678 is already linked to another email",
+  "account_number": "12345678"
+}
+```
+
+**Benefits**:
+- ✅ Prevents trial hopping with same MT5 account
+- ✅ Blocks account sharing between users
+- ✅ Enforces subscription limits
+
+**Documentation**: `docs/MT5_ACCOUNT_VALIDATION.md`
+
+---
+
+### Legal Compliance Documentation
+**Purpose**: Full CONSOB and GDPR compliance for Italian market
+
+**Documents Created**:
+1. **CONSOB Disclaimer** (`frontend/public/legal/consob-disclaimer.html`)
+   - Clarifies: NOT financial intermediary
+   - Clarifies: NOT promoting financial products
+   - MiFID II risk warnings
+   - Exclusion of 14-day right of withdrawal (digital content)
+
+2. **GDPR Privacy Policy** (`frontend/public/legal/privacy-policy.html`)
+   - Complete Reg. UE 2016/679 compliance
+   - All user rights (Articles 15-22)
+   - Data retention periods
+   - Cookie policy
+   - International data transfers (SCC)
+
+**Integration**:
+- Links in `PaymentModal.tsx` footer
+- Accessible at `/legal/consob-disclaimer.html` and `/legal/privacy-policy.html`
+- React Router page: `frontend/src/pages/PrivacyPolicy.tsx`
+
+**Key Legal Points**:
+- ❌ NO diritto di recesso (art. 59 Codice Consumo)
+- ✅ Software tecnologico (NOT financial products)
+- ✅ GDPR compliant data processing
+- ✅ CONSOB disclaimer (NOT consultation)
+
+---
+
+### Trade Execution Panel V2
+**Purpose**: Simplified trade execution with popup confirmation
+
+**Component**: `frontend/src/components/TradeExecutionPanel_V2_CLEAN.tsx`
+
+**Key Changes from V1**:
+- ❌ **REMOVED**: Risk amount input field
+- ✅ **ADDED**: Confirmation popup before execution
+- ✅ **ADDED**: Execution success popup with animation
+- ✅ **SIMPLIFIED**: Single "Execute on MT5" button
+
+**Flow**:
+```
+1. User clicks "Execute on MT5"
+2. Confirmation dialog appears
+3. User confirms → Signal saved to database (sent=false)
+4. Success popup shows
+5. EA picks up signal on next poll
+6. EA executes trade automatically
+```
+
+**Benefits**:
+- ✅ Prevents accidental executions
+- ✅ Cleaner UX without technical jargon
+- ✅ Clear visual feedback
+- ✅ Matches modern trading apps
+
+**Usage in Dashboard**:
+```tsx
+// frontend/src/pages/Index.tsx
+<TradeExecutionPanelV2
+  symbol={selectedSymbol}
+  signal={latestSignal || analysisSignal}
+/>
+```
+
+---
+
 ## Performance Optimization
 
 ### Database Optimization
@@ -1014,10 +1194,14 @@ SELECT increment_signal_usage(user_id) -- Updates counter
 ---
 
 **Last Updated**: 2025-10-19
-**Version**: 3.0.0 Analytics Edition with Revenue Optimization
-**Key Features**: Signal limits, trial management, anti-sharing, real pricing
+**Version**: 3.1.0 Compliance & Anti-Abuse Edition
+**Key Features**: Phone validation, trial notifications, MT5 account validation, CONSOB/GDPR compliance, Trade Execution V2
+**New Security**: Phone number uniqueness, MT5 account-per-user enforcement
+**Legal Compliance**: Full CONSOB disclaimer, GDPR privacy policy, no 14-day withdrawal
+**UX Improvements**: Trade Execution Panel V2 with confirmation popups
 **Maintainer**: AI Cash Revolution Team
 **ML Platform Version**: 3.0.0 (Hugging Face Spaces)
 **Active Edge Functions**: 46
 **Hugging Face Platform**: https://semiautotrade-ai-cash-evolution-ml.hf.space
+**Production URL**: https://cash-revolution.com
 **Pricing**: Essential €29.99/mo, Professional €97.00/mo
