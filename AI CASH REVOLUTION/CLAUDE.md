@@ -385,11 +385,24 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ## MT5 Expert Advisor Setup
 
+### Client Distribution
+**File for Download**: `AI_Cash_Revolution_EA_DISTRIBUTION.ex5`
+
+**Location**:
+- **Master Copy**: `tools/mt5-expert/AI_Cash_Revolution_EA_DISTRIBUTION.ex5`
+- **Frontend Public**: `frontend/public/AI_Cash_Revolution_EA_DISTRIBUTION.ex5` (served to clients)
+
+**Download Process**:
+1. Users navigate to MT5 Setup page in the application
+2. Click "Download Expert Advisor"
+3. File is downloaded from `/AI_Cash_Revolution_EA_DISTRIBUTION.ex5`
+4. Double-click the .ex5 file to auto-install in MT5
+
 ### Installation & Configuration
-1. **Copy EA File**: Place `AI_Cash_Revolution_EA_DISTRIBUTION.mq5` in MT5 experts folder
-2. **Compile EA**: Use MetaEditor to compile the .mq5 file
+1. **Download EA**: Users download `AI_Cash_Revolution_EA_DISTRIBUTION.ex5` from the web app
+2. **Simple Install**: Double-click the .ex5 file - MT5 auto-installs it
 3. **Configure Parameters**:
-   - `UserEmail`: Your registered email address
+   - `UserEmail`: Your registered email address (REQUIRED)
    - `VolumeManagementMode`: PERCENTAGE (recommended)
    - `RiskPercentage`: Risk per trade (default: 2%)
    - `MagicNumber`: Unique identifier (default: 888777)
@@ -926,10 +939,14 @@ AI CASH REVOLUTION/
 ### Key Source Files
 - `frontend/src/App.tsx` - Main application component with routing
 - `frontend/src/components/AISignals.tsx` - AI signal generation and display
+- `frontend/src/pages/MT5Setup.tsx` - MT5 setup wizard with EA download
+- `frontend/public/AI_Cash_Revolution_EA_DISTRIBUTION.ex5` - Compiled EA for client distribution
 - `backend/supabase/functions/generate-ai-signals/index.ts` - Core signal generation
 - `backend/supabase/functions/mt5-trade-signals/index.ts` - MT5 integration
 - `backend/supabase/functions/oanda-market-data/index.ts` - OANDA real-time data
 - `backend/supabase/functions/auto-oanda-trader/index.ts` - OANDA trade execution
+- `tools/mt5-expert/AI_Cash_Revolution_EA_DISTRIBUTION.mq5` - EA source code
+- `tools/mt5-expert/AI_Cash_Revolution_EA_DISTRIBUTION.ex5` - EA compiled (master copy)
 
 ### Database Files
 - `database/MANUAL_DB_SETUP.sql` - Complete database schema

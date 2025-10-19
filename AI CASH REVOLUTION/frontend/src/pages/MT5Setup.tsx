@@ -55,14 +55,14 @@ const MT5Setup = () => {
 
   const handleDownloadEA = async (fileType: 'source' | 'compiled') => {
     try {
-      const fileName = fileType === 'compiled' ? 'AI_Cash_Revolution_EA.ex5' : 'AI_Cash_Revolution_EA.mq5';
-      const filePath = `/mt5-expert/${fileName}`;
-      
+      const fileName = fileType === 'compiled' ? 'AI_Cash_Revolution_EA_DISTRIBUTION.ex5' : 'AI_Cash_Revolution_EA_DISTRIBUTION.mq5';
+      const filePath = `/${fileName}`;
+
       const response = await fetch(filePath);
       if (!response.ok) {
         throw new Error('EA file not found');
       }
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -354,7 +354,7 @@ const MT5Setup = () => {
                             <span className="font-medium">Installazione Automatica</span>
                           </div>
                           <p className="text-sm">
-                            <strong>Metodo semplice:</strong> Fai doppio click sul file <code>AI_Cash_Revolution_EA.ex5</code> scaricato.
+                            <strong>Metodo semplice:</strong> Fai doppio click sul file <code>AI_Cash_Revolution_EA_DISTRIBUTION.ex5</code> scaricato.
                             MetaTrader 5 si aprirà automaticamente e installerà l'Expert Advisor.
                           </p>
                           <Alert>

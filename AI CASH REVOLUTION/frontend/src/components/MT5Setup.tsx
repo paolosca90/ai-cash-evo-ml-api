@@ -64,12 +64,12 @@ const MT5Setup = () => {
   const downloadEA = () => {
     // Crea link per download
     const link = document.createElement('a');
-    link.href = '/mt5-expert/AI_Cash_Revolution_EA.mq5';
-    link.download = 'AI_Cash_Revolution_EA.mq5';
+    link.href = '/AI_Cash_Revolution_EA_DISTRIBUTION.ex5';
+    link.download = 'AI_Cash_Revolution_EA_DISTRIBUTION.ex5';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     toast({
       title: "Download Avviato",
       description: "Expert Advisor scaricato. Segui le istruzioni per installarlo.",
@@ -156,15 +156,15 @@ const MT5Setup = () => {
             <p className="text-sm text-muted-foreground mb-3">
               Scarica il file .mq5 e installalo nel tuo MT5
             </p>
-            <Button 
+            <Button
               onClick={() => {
                 const link = document.createElement('a');
-                link.href = '/AI_Cash_Revolution_EA-2.ex5';
-                link.download = 'AI_Cash_Revolution_EA-2.ex5';
+                link.href = '/AI_Cash_Revolution_EA_DISTRIBUTION.ex5';
+                link.download = 'AI_Cash_Revolution_EA_DISTRIBUTION.ex5';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
+
                 toast({
                   title: "Download Avviato",
                   description: "Expert Advisor scaricato. Segui le istruzioni per installarlo.",
@@ -173,7 +173,7 @@ const MT5Setup = () => {
               className="w-full"
             >
               <Download className="w-4 h-4 mr-2" />
-              Scarica AI_Cash_Revolution_EA.ex5
+              Scarica AI_Cash_Revolution_EA_DISTRIBUTION.ex5
             </Button>
           </div>
 
