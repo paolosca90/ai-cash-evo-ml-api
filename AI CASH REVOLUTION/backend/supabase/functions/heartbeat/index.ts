@@ -50,6 +50,64 @@ serve(async (req) => {
 
     console.log('💓 Heartbeat Logged:', heartbeatData)
 
+    // MT5 Account Validation - Prevent account sharing
+    const accountNumber = requestData.account_number || requestData.accountNumber || heartbeatData.account_number
+    if (accountNumber && accountNumber !== 'unknown' && accountNumber !== '') {
+      console.log(`🔍 Validating MT5 account ${accountNumber} for email ${email}`)
+
+      try {
+        // Check if this account is already linked to a different email
+        const { data: existingAccount, error: accountCheckError } = await supabase
+          .from('mt5_accounts')
+          .select('user_id, account_number')
+          .eq('account_number', accountNumber.toString())
+          .single()
+
+        if (accountCheckError && accountCheckError.code !== 'PGRST116') {
+          // Real error (not "not found")
+          console.warn('⚠️ Account validation error:', accountCheckError.message)
+        } else if (existingAccount) {
+          // Account exists, check if it belongs to this user
+          const { data: userRecord, error: userError } = await supabase
+            .from('profiles')
+            .select('id, email')
+            .eq('email', email)
+            .single()
+
+          if (userError || !userRecord) {
+            console.warn(`⚠️ User not found for email: ${email}`)
+          } else if (existingAccount.user_id !== userRecord.id) {
+            // Account belongs to someone else!
+            console.error(`🚨 MT5 Account ${accountNumber} is already linked to another user!`)
+            console.error(`🚨 Requested by: ${email} (${userRecord.id})`)
+            console.error(`🚨 Owned by: user_id ${existingAccount.user_id}`)
+
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'ACCOUNT_ALREADY_LINKED',
+                message: `MT5 account ${accountNumber} is already linked to another email address. Each MT5 account can only be linked to one user.`,
+                account_number: accountNumber,
+                requested_email: email,
+                timestamp: new Date().toISOString()
+              }),
+              {
+                status: 403, // Forbidden
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          } else {
+            console.log(`✅ MT5 account ${accountNumber} validated for user ${email}`)
+          }
+        } else {
+          console.log(`ℹ️ MT5 account ${accountNumber} not yet registered in system`)
+        }
+      } catch (validationError) {
+        console.warn('⚠️ MT5 account validation failed:', validationError.message)
+        // Don't fail the heartbeat, but log the error
+      }
+    }
+
     // Optional: Store heartbeat in database for monitoring
     try {
       const { error: logError } = await supabase
