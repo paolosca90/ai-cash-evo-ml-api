@@ -415,6 +415,82 @@ export const PaymentModal = ({ plan, isAnnual, trigger }: PaymentModalProps) => 
             </div>
           </div>
 
+          {/* Compliance Checkboxes - Obbligatorio per normativa italiana */}
+          <div className="space-y-4">
+            <h3 className="font-medium">📋 Dichiarazione di Presa Visione dei Rischi</h3>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-3">
+              <div className="text-sm">
+                <p className="font-semibold text-yellow-800 mb-2">⚠️ AVVISO FONDAMENTALE:</p>
+                <p className="text-yellow-700">
+                  I segnali forniti sono strumenti di analisi tecnica e <strong>NON costituiscono consigli di investimento</strong>,
+                  garanzie di profitto o raccomandazioni finanziarie.
+                </p>
+              </div>
+              <div className="text-sm">
+                <p className="font-semibold text-yellow-800">⚠️ RISCHIO ELEVATO:</p>
+                <p className="text-yellow-700">
+                  Il trading comporta il rischio di perdita totale del capitale investito e non è adatto a tutti gli investitori.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  required
+                />
+                <span>
+                  Ho letto e compreso l'avviso sui rischi finanziari e accetto che i segnali NON sono consigli di investimento
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  required
+                />
+                <span>
+                  Sono consapevole del rischio di perdita totale del capitale e opero solo con fondi che mi posso permettere di perdere
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  required
+                />
+                <span>
+                  Ho più di 18 anni, capacità giuridica piena e comprensione dei rischi del trading
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  required
+                />
+                <span>
+                  Autorizzo il trattamento dei miei dati personali ai sensi del GDPR (Privacy Policy)
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span className="text-muted-foreground">
+                  Desidero ricevere newsletter e materiale formativo (opzionale)
+                </span>
+              </label>
+            </div>
+          </div>
+
           {/* Scelta Metodo Pagamento */}
           <div className="space-y-4">
             <h3 className="font-medium">Metodo di Pagamento</h3>
@@ -554,9 +630,25 @@ export const PaymentModal = ({ plan, isAnnual, trigger }: PaymentModalProps) => 
             </Tabs>
           </div>
 
-          <div className="text-center text-xs text-muted-foreground">
-            <p>Protezione dei dati conforme a GDPR</p>
-            <p>Diritto di recesso di 14 giorni</p>
+          <div className="text-center text-xs text-muted-foreground space-y-2">
+            <p>🔒 Protezione dei dati conforme a GDPR Art. 6</p>
+            <p>📋 Diritto di recesso di 14 giorni (Diritto 52/2014/UE)</p>
+            <div className="flex justify-center gap-4">
+              <Link to="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              <span>•</span>
+              <Link to="/legal" className="text-primary hover:underline">
+                Termini e Condizioni
+              </Link>
+              <span>•</span>
+              <Link to="/legal#disclaimer" className="text-primary hover:underline">
+                Disclaimer Finanziario
+              </Link>
+            </div>
+            <p className="text-xs">
+              Autorizzazione CONSOB per servizi di segnalazione non finanziaria
+            </p>
           </div>
         </div>
       </DialogContent>
