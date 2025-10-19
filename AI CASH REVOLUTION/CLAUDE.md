@@ -4,13 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI Cash Revolution V3 is an advanced adaptive trading system that generates real-time trading signals using AI, machine learning, and technical analysis. The system integrates with MetaTrader 5 for automated trade execution, OANDA for real-time data and paper trading, and features a comprehensive web dashboard for signal management and analysis.
+AI Cash Revolution V3 is an advanced adaptive trading system with subscription management, trial limits, and revenue optimization. The system generates real-time trading signals using AI, machine learning, and technical analysis, with integrated MT5 execution and comprehensive analytics.
 
-**Key Components**:
-- **Main Application** (Vercel): React + TypeScript frontend with Supabase backend
-- **ML Analytics Platform** (Hugging Face Spaces): Professional monitoring and analytics with OANDA integration
-- **Auto-Trader V4**: Ensemble learning system with adaptive weight optimization
-- **MT5 Integration**: Expert Advisor for automated trade execution
+**Key Features**:
+- **Signal Limits**: 1 signal/day for Essential plan, unlimited for Professional
+- **Trial Management**: 7-day trial with expiry popup system
+- **Revenue Optimization**: Multi-tier pricing with upgrade prompts
+- **Anti-Sharing System**: Prevents MT5 account and trial abuse
+- **Real-Time Analytics**: Hugging Face ML platform with OANDA integration
+- **MT5 Integration**: Expert Advisor with automated execution
+
+**Architecture**:
+- **Frontend** (Vercel): React + TypeScript with Supabase backend
+- **Backend**: Supabase Edge Functions (46 functions) with PostgreSQL
+- **ML Analytics** (Hugging Face Spaces): Professional monitoring platform
+- **Trading**: MT5 Expert Advisors with signal polling
 
 ## Development Commands
 
@@ -169,6 +177,51 @@ curl -X POST \
 
 #### Core Tables
 ```sql
+-- User profiles with subscription and trial management
+profiles {
+  id: UUID (primary key, foreign key to auth.users)
+  email: TEXT UNIQUE -- User email with uniqueness constraint
+  phone_number: VARCHAR(20) UNIQUE -- Anti-sharing mechanism
+  subscription_plan: subscription_plan_type -- 'essenziale' | 'professional' | 'enterprise'
+  subscription_status: TEXT -- 'trial' | 'active' | 'expired'
+  subscription_expires_at: TIMESTAMPTZ -- Trial or subscription expiry
+  trial_ends_at: TIMESTAMPTZ -- Specific trial end date
+  payment_type: TEXT -- 'stripe' | 'crypto'
+}
+
+-- Subscription plans with real pricing
+subscription_plans {
+  id: UUID (primary key)
+  plan_type: subscription_plan_type UNIQUE
+  name: TEXT -- 'Essenziale' | 'Professional' | 'Enterprise'
+  price_monthly: NUMERIC -- Real Stripe prices (29.99, 97.00)
+  price_annual: NUMERIC -- Annual pricing with discounts
+  max_signals_per_day: INTEGER -- 1 for essential, 999 for professional
+  can_download_ea: BOOLEAN -- EA download permission
+  can_access_premium_features: BOOLEAN -- ML features access
+  description: TEXT -- Plan description
+  features: JSONB -- Feature list
+}
+
+-- Daily signal usage tracking (enforces limits)
+daily_signal_usage {
+  id: UUID (primary key)
+  user_id: UUID (foreign key to auth.users)
+  date: DATE UNIQUE -- Daily tracking
+  signals_used: INTEGER -- Count of signals used today
+  signals_limit: INTEGER -- Plan limit (1 or 999)
+}
+
+-- MT5 account linking (prevents sharing)
+mt5_accounts {
+  id: UUID (primary key)
+  user_id: UUID (foreign key to auth.users)
+  account_number: VARCHAR(20) UNIQUE -- Anti-sharing mechanism
+  account_name: TEXT
+  is_active: BOOLEAN
+  last_heartbeat: TIMESTAMPTZ
+}
+
 -- Primary signals table
 mt5_signals {
   id: UUID (primary key)
@@ -180,59 +233,16 @@ mt5_signals {
   stop_loss: NUMERIC -- Stop loss price
   take_profit: NUMERIC -- Take profit price
   confidence: INTEGER -- 0-100 confidence score
-  risk_amount: NUMERIC -- Risk amount in EUR
-  eurusd_rate: NUMERIC -- EUR/USD exchange rate
   timestamp: TIMESTAMPTZ -- Signal generation time
-  ai_analysis: JSON -- AI analysis data
-  sent: BOOLEAN -- Delivered to EA?
-  processed: BOOLEAN -- Processed by EA?
-  status: TEXT -- Signal status
 }
 
--- Trade execution tracking
-trades {
-  id: UUID (primary key)
-  signal_id: UUID (foreign key)
-  ticket: BIGINT -- MT5 ticket number
-  symbol: TEXT
-  type: TEXT -- BUY/SELL
-  volume: NUMERIC
-  open_price: NUMERIC
-  sl: NUMERIC
-  tp: NUMERIC
-  open_time: TIMESTAMPTZ
-  close_time: TIMESTAMPTZ
-  profit: NUMERIC
-  commission: NUMERIC
-  swap: NUMERIC
-  status: TEXT -- OPEN/CLOSED/CANCELLED
-}
-
--- Performance tracking
-signal_performance {
-  id: UUID (primary key)
-  signal_id: UUID (foreign key)
-  symbol: TEXT
-  accuracy: NUMERIC -- Win rate percentage
-  profit_factor: NUMERIC -- Total profit / total loss
-  max_drawdown: NUMERIC
-  sharpe_ratio: NUMERIC
-  duration_avg: NUMERIC -- Average trade duration
-  updated_at: TIMESTAMPTZ
-}
-
--- EA heartbeat monitoring
+-- EA heartbeat monitoring with account validation
 ea_heartbeats {
   id: UUID (primary key)
   client_id: TEXT
-  user_email: TEXT
-  account_number: BIGINT
-  balance: NUMERIC
-  equity: NUMERIC
-  margin_level: NUMERIC
-  active_trades: INTEGER
-  is_active: BOOLEAN
-  timestamp: TIMESTAMPTZ
+  account_number: BIGINT -- MT5 account for sharing prevention
+  heartbeat_data: JSONB -- Account details and status
+  created_at: TIMESTAMPTZ
 }
 ```
 
@@ -242,46 +252,39 @@ ea_heartbeats {
 - `generate-ai-signals` - Main signal generation with ML
 - `mt5-trade-signals` - Signal delivery and execution
 - `mt5-trade-signals-v2` - Enhanced MT5 integration
-- `trade-update` - Trade status updates
-- `heartbeat` - EA monitoring
+- `heartbeat` - EA monitoring with MT5 account validation
 - `auto-oanda-trader` - OANDA API integration and paper trading
 - `execute-oanda-trade` - OANDA trade execution
 - `execute-trade` - Generic trade execution
-- `trade-signals` - Legacy signal delivery
 
-#### OANDA Integration
-- `oanda-market-data` - **Real-time price feeds from OANDA API** (used by Hugging Face ML)
-- `auto-result-updater` - Automatic trade result updates every minute
-- `execute-oanda-trade` - Direct OANDA trade execution
-
-#### ML Pipeline Functions
-- `ml-confirmation` - ML signal confirmation
-- `ml-random-signals` - Random signal generation for testing
-- `ml-training-scheduler` - Automated model retraining
-
-#### Analytics & Monitoring
-- `auto-result-updater` - Updates trade results every minute
-- `debug-mt5-signals` - MT5 signal debugging
-- `get-real-indicators` - Real technical indicators
-
-#### Authentication & User Management
-- `auth-email-handler` - Email authentication
-- `auth-webhook` - Authentication webhooks
-- `password-reset-email` - Password reset
-- `send-auth-email` - Send authentication emails
-- `send-reset-email` - Send password reset emails
-- `welcome-email` - User onboarding
-- `user-api-keys` - API key management
-- `check-subscription` - Subscription validation
-
-#### Payment & Subscription
-- `create-checkout` - Stripe checkout creation
-- `create-stripe-setup` - Stripe setup intent
+#### Revenue Optimization Functions
+- `create-checkout` - Stripe checkout with real pricing (€29.99/€97.00)
+- `create-stripe-setup` - Stripe setup intent for subscriptions
 - `create-payment-qr` - Crypto payment QR codes
 - `verify-crypto-payment` - Crypto payment verification
-- `customer-portal` - Stripe customer portal
-- `crypto-renewal-reminder` - Payment renewal reminders
+- `customer-portal` - Stripe customer portal for upgrades
+- `check-subscription` - Subscription validation with limits
 - `expire-trials` - Trial expiration management
+
+#### Anti-Sharing & Security Functions
+- **`heartbeat`** - Enhanced with MT5 account uniqueness validation
+- `auth-email-handler` - Email authentication with uniqueness
+- `send-auth-email` - Send authentication emails
+- `welcome-email` - User onboarding with trial details
+
+#### Signal Limit Enforcement Functions
+- `can_generate_signal` - Database function checking daily limits
+- `increment_signal_usage` - Updates daily signal counter
+- `auto-result-updater` - Trade result updates
+
+#### OANDA Integration
+- `oanda-market-data` - Real-time price feeds for Hugging Face ML
+- `auto-result-updater` - Automatic trade result updates every minute
+
+#### ML Analytics (Hugging Face)
+- Auto-save signals to `signal_performance` table
+- Real-time performance tracking via `signal_performance_analytics` view
+- Ensemble weights optimization in `ensemble_weights` table
 
 #### Data & Integration Functions
 - `fetch-economic-calendar` - Economic events
@@ -959,39 +962,62 @@ AI CASH REVOLUTION/
 - `deploy-functions.js` - Custom Supabase deployment script
 - `deploy-function.js` - Single function deployment
 
-## Important Notes
+## Revenue & Subscription Management
 
-### Rate Limiting & Quotas
-- Daily signal generation limits per user
-- API rate limiting for OANDA integration
-- Function execution timeouts (25 seconds)
-- Database connection pooling limits
+### Signal Limit System
+- **Essential Plan**: 1 signal per day with real-time tracking
+- **Professional Plan**: 999 signals per day (effectively unlimited)
+- **Database Enforcement**: `daily_signal_usage` table prevents overages
+- **Real-time UI**: Progress bars and upgrade prompts when limit reached
 
-### Symbol Support
-- **26 symbols supported**: majors, minors, crosses, and metals
-- **Automatic symbol mapping** for different brokers
-- **Dynamic symbol validation** and suitability checks
-- **RR 1:1 application** for XAUUSD, ETHUSD, BTCUSD
+### Trial Management
+- **7-Day Trial**: Automatic expiry with popup system
+- **Trial Expiry Popup**: Appears 3 days before expiry with upgrade prompts
+- **Pricing Display**: Real Stripe prices (Essential: €29.99, Professional: €97.00)
+- **Conversion Optimization**: Clear value proposition and upgrade urgency
 
-### Risk Management
-- **Dynamic position sizing** based on account balance
-- **Percentage-based risk** (default 2% per trade)
-- **ATR-based stop losses** with minimum distances
-- **1:1 risk-reward ratios** with spread compensation
+### Anti-Sharing Security
+- **Email Uniqueness**: Prevents multiple accounts per email
+- **Phone Number Unique**: Additional deterrent for trial abuse
+- **MT5 Account Unique**: Prevents account sharing between users
+- **Heartbeat Validation**: Real-time account sharing detection
 
-### Auto-Trader V4 Integration
-- **29 Symbols**: All majors, minors, and Gold
-- **Ensemble Learning**: Dynamic weight optimization every 10 trades
-- **Weight Filtering**: Only trades with ≥70% confidence from dominant model
-- **Auto-Result-Updater**: Checks trade results every minute
-- **Ensemble Weights Table**: Tracks ML vs Classic performance per symbol
-- **Signal Performance Table**: Complete trade history with P&L tracking
+### Pricing Strategy
+- **Essential**: €29.99/month (€0.99 per signal at 1/day limit)
+- **Professional**: €97.00/month (€0.03 per signal at unlimited)
+- **Annual Discounts**: €59.89 savings on Essential, €194.00 on Professional
+- **Revenue Optimization**: 223% uplift per conversion to Professional
+
+## Signal Generation Limits
+
+### Database Functions
+```sql
+-- Check if user can generate signal
+SELECT can_generate_signal(user_id) -- Returns BOOLEAN
+
+-- Increment daily usage after signal generation
+SELECT increment_signal_usage(user_id) -- Updates counter
+```
+
+### Frontend Integration
+- **AISignals.tsx**: Real-time usage display and limit enforcement
+- **SubscriptionLimits.tsx**: Usage tracking component
+- **TrialExpiryPopup.tsx**: Trial expiry with upgrade prompts
+- **PaymentSetup.tsx**: Checkout with plan preselection
+
+### Limit Enforcement Flow
+1. User requests signal → `can_generate_signal()` check
+2. If limit reached → Show upgrade prompt with real pricing
+3. If under limit → Generate signal → `increment_signal_usage()`
+4. Update UI in real-time with remaining signals
 
 ---
 
 **Last Updated**: 2025-10-19
-**Version**: 3.0.0 Analytics Edition
+**Version**: 3.0.0 Analytics Edition with Revenue Optimization
+**Key Features**: Signal limits, trial management, anti-sharing, real pricing
 **Maintainer**: AI Cash Revolution Team
 **ML Platform Version**: 3.0.0 (Hugging Face Spaces)
 **Active Edge Functions**: 46
 **Hugging Face Platform**: https://semiautotrade-ai-cash-evolution-ml.hf.space
+**Pricing**: Essential €29.99/mo, Professional €97.00/mo

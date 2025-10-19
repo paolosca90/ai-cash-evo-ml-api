@@ -1,0 +1,13 @@
+{
+  "space_name": "ai-cash-evolution-ml",
+  "owner": "ai-cash-evolution",
+  "visibility": "public",
+  "sdk": "gradio",
+  "hardware": "cpu-basic",
+  "template": "blank",
+  "description": "AI Cash Evolution - Professional ML Trading System with real-time signals, technical analysis, and interactive charts",
+  "tags": ["trading", "machine-learning", "finance", "technical-analysis", "forex", "crypto", "gradio"],
+  "emoji": "🤖",
+  "colorFrom": "blue",
+  "colorTo": "purple"
+}

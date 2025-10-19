@@ -16,14 +16,18 @@ const OANDA_ACCOUNT_ID = Deno.env.get('OANDA_ACCOUNT_ID')!
 // Weight filtering threshold (based on backtest: 100% win rate at >= 70)
 const MIN_WEIGHT_THRESHOLD = 70.0
 
-// All available symbols
+// All available symbols - Major + Minor + Gold (focus on high liquidity)
 const ALL_SYMBOLS = [
-  // Major pairs
+  // MAJOR PAIRS (highest liquidity, tight spreads)
   'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF',
-  // Minor pairs
+
+  // MINOR PAIRS (high volume, good opportunities)
   'AUDUSD', 'USDCAD', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY',
-  // Metals
-  'XAUUSD', 'XAGUSD'
+  'EURCHF', 'EURAUD', 'EURCAD', 'EURNZD', 'GBPCHF', 'GBPAUD',
+  'GBPCAD', 'GBPNZD', 'AUDJPY', 'CADJPY', 'NZDJPY', 'CHFJPY',
+
+  // GOLD (safe haven, high volatility)
+  'XAUUSD'
 ]
 
 interface AutoTradeConfig {
@@ -86,9 +90,11 @@ serve(async (req) => {
       skipWeightFilter = false
     } = config
 
-    console.log('🚀 Auto OANDA Trader V4 Started')
+    console.log('🚀 Auto OANDA Trader V4 Started - Enhanced Edition')
     console.log(`   Mode: ${mode}`)
+    console.log(`   Universe: ${ALL_SYMBOLS.length} symbols (MAJORS + MINORS + GOLD)`)
     console.log(`   Weight Threshold: ${minWeightThreshold} (${skipWeightFilter ? 'DISABLED' : 'ENABLED'})`)
+    console.log(`   Analysis: Complete Technical + ML + Smart Money`)
     console.log('---')
 
     const results = []
@@ -330,23 +336,114 @@ async function executeSingleTrade(
   }
 }
 
-// Generate signal using AI Edge Function
+// Generate signal using Enhanced AI Edge Function with complete technical analysis
 async function generateSignal(symbol: string) {
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-ai-signals`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-    },
-    body: JSON.stringify({ symbol })
-  })
+  try {
+    console.log(`   📊 Generating signal for ${symbol} using complete technical analysis...`)
 
-  if (!response.ok) {
-    console.error(`Signal generation failed: ${response.status} ${response.statusText}`)
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-ai-signals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+      },
+      body: JSON.stringify({
+        symbol,
+        // Request complete analysis with all indicators
+        analysis_type: 'complete',
+        timeframes: ['M5', 'M15', 'H1'],
+        include_ml: true,
+        include_smart_money: true
+      })
+    })
+
+    if (!response.ok) {
+      console.error(`   ❌ Signal generation failed: ${response.status} ${response.statusText}`)
+      return null
+    }
+
+    const signal = await response.json()
+
+    // Validate signal completeness
+    if (!signal || !signal.type) {
+      console.error(`   ❌ Invalid signal format received`)
+      return null
+    }
+
+    // Ensure signal has all required components for Auto-Trader V4
+    if (!signal.stopLoss || !signal.takeProfit || !signal.entryPrice) {
+      console.warn(`   ⚠️  Signal missing SL/TP/Entry, calculating from market data...`)
+      // Fallback calculations if not provided
+      const marketData = await getMarketDataForSignal(symbol)
+      if (marketData) {
+        signal.stopLoss = signal.stopLoss || calculateStopLoss(signal.type, marketData.price)
+        signal.takeProfit = signal.takeProfit || calculateTakeProfit(signal.type, marketData.price)
+        signal.entryPrice = signal.entryPrice || marketData.price
+      }
+    }
+
+    console.log(`   ✅ Signal generated: ${signal.type} @ ${signal.entryPrice}`)
+    return signal
+
+  } catch (error) {
+    console.error(`   ❌ Error in signal generation:`, error)
     return null
   }
+}
 
-  return await response.json()
+// Get current market data for fallback calculations
+async function getMarketDataForSignal(symbol: string) {
+  try {
+    const instrument = symbol.includes('_') ? symbol : `${symbol.slice(0,3)}_${symbol.slice(3)}`
+
+    const response = await fetch(
+      `https://api-fxpractice.oanda.com/v3/accounts/${OANDA_ACCOUNT_ID}/pricing?instruments=${instrument}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${OANDA_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`OANDA pricing API failed: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const price = data.prices[0]
+
+    return {
+      price: parseFloat(price.closeoutBid),
+      spread: parseFloat(price.closeoutAsk) - parseFloat(price.closeoutBid),
+      timestamp: price.time
+    }
+  } catch (error) {
+    console.error(`   ❌ Failed to get market data: ${error}`)
+    return null
+  }
+}
+
+// Calculate Stop Loss based on signal type and current price
+function calculateStopLoss(signalType: string, currentPrice: number): number {
+  const atrPercent = 0.0015 // 0.15% ATR approximation
+
+  if (signalType === 'BUY') {
+    return currentPrice - (currentPrice * atrPercent * 1.5) // 1.5x ATR
+  } else {
+    return currentPrice + (currentPrice * atrPercent * 1.5)
+  }
+}
+
+// Calculate Take Profit based on signal type and current price
+function calculateTakeProfit(signalType: string, currentPrice: number): number {
+  const atrPercent = 0.0015 // 0.15% ATR approximation
+
+  if (signalType === 'BUY') {
+    return currentPrice + (currentPrice * atrPercent * 2.0) // 2.0x ATR
+  } else {
+    return currentPrice - (currentPrice * atrPercent * 2.0)
+  }
 }
 
 // Execute trade on OANDA with position sizing

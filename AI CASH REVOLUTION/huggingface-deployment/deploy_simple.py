@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""
+AI Cash Evolution - Hugging Face Spaces Deployment Automation
+Simplified deployment script for Windows compatibility
+"""
+
+import webbrowser
+import time
+import os
+from pathlib import Path
+
+def verify_files():
+    """Verify all required files exist and are ready"""
+
+    required_files = {
+        'app.py': 'Main application file',
+        'requirements.txt': 'Python dependencies'
+    }
+
+    print("Verifying deployment files...")
+
+    for filename, description in required_files.items():
+        filepath = Path(filename)
+        if filepath.exists():
+            size = filepath.stat().st_size
+            print(f"✓ {filename} ({size:,} bytes) - {description}")
+        else:
+            print(f"✗ {filename} - MISSING")
+            return False
+
+    print("All files verified and ready for deployment!")
+    return True
+
+def create_deployment_config():
+    """Create Hugging Face Space configuration"""
+
+    config = {
+        "title": "AI Cash Evolution - ML Trading System",
+        "emoji": "🤖",
+        "colorFrom": "green",
+        "colorTo": "blue",
+        "sdk": "gradio",
+        "sdk_version": "4.7.1",
+        "python_version": "3.10",
+        "app_file": "app.py",
+        "pinned": False,
+        "license": "mit",
+        "models": [],
+        "datasets": [],
+        "space_sdk": "gradio"
+    }
+
+    import json
+    with open('config.json', 'w') as f:
+        json.dump(config, f, indent=2)
+
+    print("Created Hugging Face Space configuration")
+
+def show_deployment_steps():
+    """Show deployment steps"""
+
+    steps = """
+=== AI CASH EVOLUTION - DEPLOYMENT STEPS ===
+
+STEP 1: Create Hugging Face Space
+1. Go to: https://huggingface.co/spaces
+2. Click "Create new Space"
+3. Fill configuration:
+   - Space name: ai-cash-evolution-ml
+   - Owner: Your username
+   - Visibility: Public
+   - SDK: Gradio
+   - Hardware: CPU basic (free)
+   - Space template: Use a Gradio Space
+
+STEP 2: Upload Files
+Files to upload to your Space:
+- app.py (596 lines - main application)
+- requirements.txt (8 packages - dependencies)
+- config.json (Space configuration)
+
+STEP 3: Deployment
+1. Click "Create Space"
+2. Wait 2-3 minutes for build
+3. System will be LIVE automatically
+
+STEP 4: Your URLs
+- Main Interface: https://ai-cash-evolution-ml.hf.space
+- API Base: https://ai-cash-evolution-ml.hf.space
+- Health Check: https://ai-cash-evolution-ml.hf.space/health
+
+STEP 5: Test Endpoints
+- GET /health - System health
+- GET /predict?symbol=EURUSD=X - Single analysis
+- POST /predict/batch - Batch analysis
+- GET /symbols - Available symbols
+
+=== FEATURES ===
+- ML-style trading signals with confidence
+- Interactive price charts
+- Real-time technical analysis
+- Support for Forex, Crypto, Commodities, Indices
+- REST API for integration
+- Mobile responsive interface
+
+=== INTEGRATION ===
+Update your dashboard:
+VITE_ML_API_URL=https://ai-cash-evolution-ml.hf.space
+"""
+
+    return steps
+
+def main():
+    """Main deployment automation"""
+
+    print("AI CASH EVOLUTION - ML TRADING SYSTEM DEPLOYMENT")
+    print("=" * 60)
+
+    # Step 1: Verify files
+    if not verify_files():
+        print("Deployment failed: Missing files")
+        return
+
+    # Step 2: Create configuration
+    create_deployment_config()
+
+    # Step 3: Show deployment steps
+    print(show_deployment_steps())
+
+    # Step 4: Open browser
+    print("Opening Hugging Face Spaces in browser...")
+    try:
+        webbrowser.open("https://huggingface.co/spaces")
+        print("Browser opened successfully!")
+    except:
+        print("Could not open browser automatically")
+        print("Please go to: https://huggingface.co/spaces")
+
+    print("\nDeployment preparation complete!")
+    print("Expected time: 3-5 minutes")
+
+if __name__ == "__main__":
+    main()

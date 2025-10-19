@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Zap,
   Lock,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 
 interface PaymentMethod {
@@ -29,8 +30,11 @@ const PaymentSetup = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
-  
+  const [plans, setPlans] = useState<any[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
+
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,46 +46,71 @@ const PaymentSetup = () => {
         return;
       }
       setUser(session.user);
-      
+
+      // Fetch subscription plans
+      const { data: plansData } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('price_monthly', { ascending: true });
+      setPlans(plansData || []);
+
       // Check if user already has payment method
       const { data: profile } = await supabase
         .from('profiles')
         .select('payment_method, subscription_status, trial_ends_at')
         .eq('id', session.user.id)
         .single();
-        
+
       if (profile?.payment_method && profile?.subscription_status !== 'expired') {
         // User already has payment method, redirect to main app
         navigate('/trading');
+        return;
+      }
+
+      // Check if a plan was selected from popup
+      const state = location.state as any;
+      if (state?.selectedPlan) {
+        setSelectedPlan(state.selectedPlan);
+        setCurrentStep(2); // Skip to plan selection
       }
     };
-    
+
     checkAuth();
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   
-  const handleStripeSetup = async () => {
+  const handleStripeSetup = async (planType?: string) => {
     setIsLoading(true);
-    
+
     try {
-      // Create Stripe setup session
-      const { data, error } = await supabase.functions.invoke('create-stripe-setup', {
-        body: { user_id: user?.id }
+      // Create Stripe checkout session for selected plan
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          user_id: user?.id,
+          plan_type: planType || selectedPlan,
+          success_url: `${window.location.origin}/payment-success`,
+          cancel_url: `${window.location.origin}/payment-setup`
+        }
       });
 
       if (error) throw error;
 
-      // Redirect to Stripe setup
+      // Redirect to Stripe checkout
       window.location.href = data.url;
-      
+
     } catch (error: unknown) {
       toast({
         title: 'Errore',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Errore durante la configurazione del pagamento',
         variant: 'destructive'
       });
       setIsLoading(false);
     }
+  };
+
+  const handlePlanSelect = (planType: string) => {
+    setSelectedPlan(planType);
+    handleStripeSetup(planType);
   };
 
   const completeSetup = () => {

@@ -216,7 +216,6 @@ I segnali possono non performare come atteso.
 >
 > - Posso revocare il consenso al trattamento dati in qualsiasi momento
 > - Ho diritto di accesso, rettifica e cancellazione dei miei dati
-> - Posso esercitare il diritto di recesso entro 14 giorni dall'acquisto
 > - In caso di controversia, posso rivolgermi al Garante per la Protezione dei Dati Personali
 
 ---

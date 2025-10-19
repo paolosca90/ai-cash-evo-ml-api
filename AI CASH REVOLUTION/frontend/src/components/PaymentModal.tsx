@@ -632,7 +632,6 @@ export const PaymentModal = ({ plan, isAnnual, trigger }: PaymentModalProps) => 
 
           <div className="text-center text-xs text-muted-foreground space-y-2">
             <p>🔒 Protezione dei dati conforme a GDPR Art. 6</p>
-            <p>📋 Diritto di recesso di 14 giorni (Diritto 52/2014/UE)</p>
             <div className="flex justify-center gap-4">
               <Link to="/privacy" className="text-primary hover:underline">
                 Privacy Policy

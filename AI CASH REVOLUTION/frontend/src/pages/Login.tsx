@@ -18,6 +18,7 @@ import {
   Brain,
   DollarSign,
   Clock,
+  Phone,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,10 +36,17 @@ const passwordSchema = z
   .min(6, { message: "La password deve avere almeno 6 caratteri" })
   .max(128, { message: "Password troppo lunga" });
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^\+?[1-9]\d{1,14}$/, { message: "Numero di telefono non valido (usa formato internazionale es. +39...)" })
+  .min(10, { message: "Numero troppo corto" })
+  .max(20, { message: "Numero troppo lungo" });
+
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [signupData, setSignupData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [signupData, setSignupData] = useState({ name: "", email: "", password: "", confirmPassword: "", phoneNumber: "" });
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -133,33 +141,66 @@ const Login = () => {
     try {
       const email = emailSchema.parse(signupData.email);
       const password = passwordSchema.parse(signupData.password);
+      const phoneNumber = phoneSchema.parse(signupData.phoneNumber);
+
       if (password !== signupData.confirmPassword) {
         throw new Error("Le password non coincidono");
       }
 
       setIsLoading(true);
 
+      // Verifica se il numero di telefono è già registrato
+      const { data: existingPhone } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('phone_number', phoneNumber)
+        .single();
+
+      if (existingPhone) {
+        throw new Error("Questo numero di telefono è già registrato. Ogni utente può avere un solo account.");
+      }
+
       // Redirect al dominio di produzione per la conferma
       const redirectUrl = "https://cash-revolution.com/login";
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { 
+        options: {
           emailRedirectTo: redirectUrl,
           data: {
-            name: signupData.name
+            name: signupData.name,
+            phone_number: phoneNumber
           }
         },
       });
       if (error) throw error;
 
+      // Salva il numero di telefono nel profilo
+      if (authData.user) {
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 7);
+
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: authData.user.email,
+            phone_number: phoneNumber,
+            subscription_plan: 'professional',
+            trial_ends_at: trialEndDate.toISOString(),
+            subscription_expires_at: trialEndDate.toISOString(),
+            subscription_status: 'trial'
+          });
+      }
+
       // Messaggio di conferma email obbligatoria
       toast({
         title: "📧 Controlla la tua email!",
-        description: "Ti abbiamo inviato un link di verifica. Clicca sul link nell'email per attivare il tuo account e completare la registrazione.",
+        description: "Ti abbiamo inviato un link di verifica. Clicca sul link nell'email per attivare il tuo account e iniziare la tua prova gratuita di 7 giorni.",
       });
     } catch (err: unknown) {
-      toast({ title: "Errore di registrazione", description: err.message ?? "Registrazione non riuscita", variant: "destructive" });
+      const errorMessage = err instanceof Error ? err.message : "Registrazione non riuscita";
+      toast({ title: "Errore di registrazione", description: errorMessage, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -312,6 +353,15 @@ const Login = () => {
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input id="signup-email" type="email" placeholder="il-tuo-email@esempio.com" className="pl-10" value={signupData.email} onChange={(e) => setSignupData({ ...signupData, email: e.target.value })} required />
                         </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-phone">Numero di Telefono</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input id="signup-phone" type="tel" placeholder="+39 123 456 7890" className="pl-10" value={signupData.phoneNumber} onChange={(e) => setSignupData({ ...signupData, phoneNumber: e.target.value })} required />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Formato internazionale (es. +39 per Italia). Necessario per prevenire account multipli.</p>
                       </div>
 
                       <div className="space-y-2">

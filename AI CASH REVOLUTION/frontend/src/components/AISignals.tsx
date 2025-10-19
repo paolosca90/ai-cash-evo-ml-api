@@ -15,10 +15,13 @@ import {
   RefreshCw,
   AlertTriangle,
   WifiOff,
-  Clock
+  Clock,
+  Sparkles,
+  Lock
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import type { AISignal } from "@/types/trading";
 import { TradingError } from "@/types/trading";
 
@@ -142,12 +145,61 @@ export const AISignals = ({ symbol }: AISignalsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Analyzing market data...");
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [planDetails, setPlanDetails] = useState<any>(null);
+  const [dailyUsage, setDailyUsage] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const fetchSubscriptionData = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_plan, subscription_expires_at')
+        .eq('id', user.id)
+        .single();
+
+      setUserProfile(profile);
+
+      // Fetch plan details
+      const { data: plan } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('plan_type', profile?.subscription_plan || 'essenziale')
+        .single();
+
+      setPlanDetails(plan);
+
+      // Fetch daily usage
+      const { data: usage } = await supabase
+        .from('daily_signal_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', new Date().toISOString().split('T')[0])
+        .maybeSingle();
+
+      setDailyUsage(usage || { signals_used: 0, signals_limit: plan?.max_signals_per_day || 1 });
+
+      // Check if limit is reached
+      if (usage && plan && usage.signals_used >= plan.max_signals_per_day) {
+        setLimitReached(true);
+      }
+    } catch (error) {
+      console.error('Error fetching subscription data:', error);
+    }
+  }, []);
 
   const loadInitialSignals = useCallback(async () => {
     setError(null);
     setLoadingMessage("Fetching initial AI signals...");
+
+    // Load subscription data first
+    await fetchSubscriptionData();
+
     try {
       const first = await generateAISignal(symbol);
       setSignals([first]);
@@ -157,7 +209,7 @@ export const AISignals = ({ symbol }: AISignalsProps) => {
       setError(errorMessage);
       setSignals([]);
     }
-  }, [symbol]);
+  }, [symbol, fetchSubscriptionData]);
 
   useEffect(() => {
     loadInitialSignals();
@@ -322,19 +374,49 @@ export const AISignals = ({ symbol }: AISignalsProps) => {
               )}
             </Button>
 
-            {limitReached && (
+            {limitReached && planDetails && (
               <Button
                 size="sm"
-                onClick={() => navigate('/payment-setup')}
-                className="bg-gradient-primary text-xs"
+                onClick={() => navigate('/payment-setup', { state: { selectedPlan: 'professional' } })}
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-xs"
               >
                 <Crown className="w-3 h-3 mr-1" />
-                Upgrade Now
+                Upgrade €97
               </Button>
             )}
           </div>
         </div>
       </CardHeader>
+
+      {/* Daily usage indicator for essential users */}
+      {userProfile?.subscription_plan === 'essenziale' && dailyUsage && planDetails && (
+        <div className="px-6 pb-3">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">
+                  Segnali Oggi: {dailyUsage.signals_used}/{planDetails.max_signals_per_day}
+                </span>
+              </div>
+              <Badge variant="outline" className="text-blue-700 border-blue-300">
+                {dailyUsage.signals_used >= planDetails.max_signals_per_day ? 'Completo' : 'Disponibile'}
+              </Badge>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min((dailyUsage.signals_used / planDetails.max_signals_per_day) * 100, 100)}%` }}
+              />
+            </div>
+            {dailyUsage.signals_used >= planDetails.max_signals_per_day && (
+              <p className="text-xs text-blue-700 mt-1">
+                💡 Fai upgrade al piano Professional per segnali illimitati
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <CardContent className="space-y-3">
         {/* Error notification within the card */}
@@ -356,21 +438,76 @@ export const AISignals = ({ symbol }: AISignalsProps) => {
           </div>
         )}
 
-        {/* Limit reached notification */}
-        {limitReached && (
-          <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-            <div className="flex items-center justify-between">
+        {/* Limit reached notification with real pricing */}
+        {limitReached && planDetails && dailyUsage && (
+          <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg">
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Crown className="w-4 h-4 text-warning" />
+                <Lock className="w-5 h-5 text-orange-600" />
                 <div>
-                  <p className="text-sm font-medium text-warning">Limite segnali raggiunto</p>
-                  <p className="text-xs text-muted-foreground">Fai upgrade per segnali illimitati</p>
+                  <p className="text-sm font-semibold text-orange-800">
+                    Limite giornaliero raggiunto: {dailyUsage.signals_used}/{dailyUsage.signals_limit} segnali
+                  </p>
+                  <p className="text-xs text-orange-600">
+                    Piano {planDetails.name} - {planDetails.description}
+                  </p>
                 </div>
               </div>
-              <Button size="sm" onClick={() => navigate('/payment-setup')}>
-                <ExternalLink className="w-3 h-3 mr-1" />
-                Upgrade
-              </Button>
+
+              {/* Current vs Professional comparison */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-2 bg-white/50 rounded border border-orange-200">
+                  <div className="text-xs text-orange-700 font-medium">Piano Attuale</div>
+                  <div className="text-sm font-bold text-orange-800">€{planDetails.price_monthly}/mese</div>
+                  <div className="text-xs text-orange-600">{planDetails.max_signals_per_day === 999 ? 'Illimitati' : planDetails.max_signals_per_day} segnali</div>
+                </div>
+                <div className="p-2 bg-green-50 rounded border border-green-200">
+                  <div className="text-xs text-green-700 font-medium">Professional</div>
+                  <div className="text-sm font-bold text-green-800">€97.00/mese</div>
+                  <div className="text-xs text-green-600">999 segnali</div>
+                </div>
+              </div>
+
+              {/* Benefits list */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-orange-700">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Passa a segnali illimitati</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-orange-700">
+                  <Crown className="w-3 h-3" />
+                  <span>Expert Advisor MT5 incluso</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-orange-700">
+                  <Target className="w-3 h-3" />
+                  <span>Analisi ML avanzate</span>
+                </div>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => navigate('/payment-setup', { state: { selectedPlan: 'professional' } })}
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                >
+                  <Crown className="w-3 h-3 mr-1" />
+                  Upgrade a €97.00
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/payment-setup')}
+                  className="flex-1"
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Vedi Piani
+                </Button>
+              </div>
+
+              <div className="text-xs text-orange-600 text-center">
+                Upgrade subito per continuare a generare segnali! 🚀
+              </div>
             </div>
           </div>
         )}

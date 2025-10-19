@@ -64,7 +64,15 @@
       "Bash(cp -r \"AI CASH REVOLUTION VERCEL +SUPABASE/ml_models\" railway-ml-service/)",
       "Bash(cp \"AI CASH REVOLUTION VERCEL +SUPABASE/.env\" \"AI CASH REVOLUTION VERCEL +SUPABASE/.env.production\" .)",
       "Bash(git push origin main --force)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(git remote set-url:*)",
+      "Bash(start https://ai-cash-evolution-ml.hf.space)",
+      "WebFetch(domain:semiautotrade-ai-cash-evolution-ml.hf.space)",
+      "Bash(psql \"postgresql://postgres.rvopmdflnecyrwrzhyfy:2N2G7Tm8D2i9@aws-0-eu-central-1.pooler.supabase.com:6543/postgres\" -c \"\\d profiles\")",
+      "Read(//c/Users/USER/Desktop/**)",
+      "Bash(https://rvopmdflnecyrwrzhyfy.supabase.co/functions/v1/generate-ai-signals )"
     ],
     "deny": [],
     "ask": []
